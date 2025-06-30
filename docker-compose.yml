@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:5 # 5.x is a good, stable choice
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db # persists glucose data
+
+  nightscout:
+    image: nightscout/cgm-remote-monitor:latest
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - "1337:1337" # hostPort:containerPort
+    environment:
+      TZ: Europe/Paris # or your own tz database name
+      API_SECRET: "3b702639c97a4fa0b5b991cb4218b61361e724c22499c2170a22bda70b5e6a1e"
+      AUTH_DEFAULT_ROLES: "readable"
+      MONGO_CONNECTION: "mongodb://mongo:27017/nightscout"
+      INSECURE_USE_HTTP: "true" # let Nightscout serve plain HTTP inside Docker
+      ENABLE: "careportal iob" # turn on any plugins you want (optional)
+
+volumes:
+  mongo-data:
